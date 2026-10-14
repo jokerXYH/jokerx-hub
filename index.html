@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>Joker X · 中转站</title>
+  <meta name="description" content="Joker X 的个人导航中转站">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='15' fill='%230071e3'/><text x='27' y='45' font-family='Helvetica' font-size='32' font-weight='700' fill='%23ffffff' text-anchor='middle'>J</text><circle cx='47' cy='41' r='4' fill='%23ffffff' opacity='0.9'/></svg>">
+  <!-- 首屏主题：必须在样式表之前确定 data-theme，避免刷新时闪一下错误的颜色。
+       独立成 theme.js 是为了兼容站点 CSP（script-src 'self' 会拦截内联脚本）。 -->
+  <script src="theme.js"></script>
+  <link rel="preload" href="assets/fonts/playfair-display-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/playfair-display.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <!-- 顶栏：右侧时钟 / 问候 / 主题切换 -->
+    <div class="topbar">
+      <span class="clock" id="clock">--:--</span>
+      <span class="greeting" id="greeting">你好</span>
+      <button class="theme-toggle" id="themeToggle" type="button" title="切换深色 / 浅色" aria-label="切换深色 / 浅色">
+        <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M5.2 18.8l1.6-1.6M17.2 6.8l1.6-1.6"/></svg>
+        <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z"/></svg>
+      </button>
+    </div>
+
+    <!-- 标题与搜索 -->
+    <header class="hero">
+      <h1 class="brand-title">Joker X<span class="brand-dot" aria-hidden="true"></span></h1>
+      <p class="brand-sub">个人导航中转站</p>
+      <div class="search-wrap">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="搜索" autocomplete="off" spellcheck="false" aria-label="搜索">
+          <kbd class="search-kbd">/</kbd>
+        </div>
+      </div>
+    </header>
+
+    <!-- 分区卡片（由 app.js 按 config.js 渲染） -->
+    <main class="sections" id="sections"></main>
+
+    <!-- 空状态 -->
+    <div class="empty" id="empty" hidden>
+      <p class="empty-text">没有找到匹配的条目，换个关键词试试。</p>
+    </div>
+
+    <footer class="footer">
+      <span>Joker X · 中转站 © <span id="year"></span></span>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <span>编辑 <code>config.js</code> 增删条目</span>
+    </footer>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

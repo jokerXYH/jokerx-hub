@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="邀请码提取">
+  <!-- App 贴片底：苹果绿渐变，圆角由页面 CSS 裁切 -->
+  <defs>
+    <linearGradient id="gInviteCode" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3ddc84"/>
+      <stop offset="1" stop-color="#0f9d58"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" fill="url(#gInviteCode)"/>
+  <!-- 白色票券 + 对勾（复用 24 线稿，居中放大 1.15 倍） -->
+  <g transform="translate(24 24) scale(1.15) translate(-12 -12)" fill="none" stroke="#ffffff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="6.5" width="18" height="11" rx="2.5"/>
+    <path d="M13.5 6.5v11" stroke-dasharray="1.6 2.2"/>
+    <path d="M6.2 12.2l1.9 2 3.1-3.5"/>
+  </g>
+</svg>

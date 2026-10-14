@@ -1,0 +1,21 @@
+# ---- 操作系统 / 编辑器 ----
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# ---- 本地子项目（projects/ 下按需自行放入，不入库）----
+projects/*/venv/
+projects/*/node_modules/
+projects/*/__pycache__/
+projects/*/*.pyc
+projects/*/config.json
+projects/*/local.properties
+
+# ---- 通用忽略 ----
+node_modules/
+__pycache__/
+*.pyc
+.env
+*.log

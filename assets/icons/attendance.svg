@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="一键考勤">
+  <!-- App 贴片底：苹果蓝渐变，圆角由页面 CSS 裁切 -->
+  <defs>
+    <linearGradient id="gAttendance" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3ba1ff"/>
+      <stop offset="1" stop-color="#0064e0"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" fill="url(#gAttendance)"/>
+  <!-- 白色日历 + 对勾（复用 24 线稿，居中放大 1.15 倍） -->
+  <g transform="translate(24 24) scale(1.15) translate(-12 -12)" fill="none" stroke="#ffffff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3.5" y="4.5" width="17" height="16" rx="3"/>
+    <path d="M8 2.8v3.4M16 2.8v3.4"/>
+    <path d="M3.5 9.5h17"/>
+    <path d="M8.6 14.6l2.4 2.4 4.4-4.8"/>
+  </g>
+</svg>
