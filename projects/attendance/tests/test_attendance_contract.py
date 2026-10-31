@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 """Backend contract tests for attendance submission."""
 
+import sys
 import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from attendance_api import build_submit_payload
 from server import normalize_absence_reasons
