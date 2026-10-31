@@ -1,0 +1,123 @@
+{
+    "Version": 3,
+    "FileReferences": {
+        "Moc": "c_0120.moc3",
+        "Textures": [
+            "/assets/pet/live2d/model/c_0120.2048/texture_00.webp",
+            "/assets/pet/live2d/model/c_0120.2048/texture_01.webp"
+        ],
+        "Physics": "c_0120.physics3.json",
+        "DisplayInfo": "c_0120.cdi3.json",
+        "Motions": {
+            "idle": [
+                {
+                    "File": "motions/idle.motion3.json",
+                    "FadeInTime": 0.8,
+                    "FadeOutTime": 0.8
+                }
+            ],
+            "aidale": [
+                {
+                    "File": "motions/_aidale.motion3.json",
+                    "FadeInTime": 0.35,
+                    "FadeOutTime": 0.5
+                }
+            ],
+            "selfie": [
+                {
+                    "File": "motions/自拍.motion3.json",
+                    "FadeInTime": 0.35,
+                    "FadeOutTime": 0.5
+                }
+            ],
+            "selfieQuick": [
+                {
+                    "File": "motions/自拍简单.motion3.json",
+                    "FadeInTime": 0.35,
+                    "FadeOutTime": 0.5
+                }
+            ],
+            "ketchup": [
+                {
+                    "File": "motions/番茄酱.motion3.json",
+                    "FadeInTime": 0.35,
+                    "FadeOutTime": 0.5
+                }
+            ],
+            "openLid": [
+                {
+                    "File": "motions/开盖.motion3.json",
+                    "FadeInTime": 0.35,
+                    "FadeOutTime": 0.5
+                }
+            ]
+        },
+        "Expressions": [
+            {
+                "Name": "开心兴奋",
+                "File": "expressions/开心兴奋.exp3.json"
+            },
+            {
+                "Name": "生气",
+                "File": "expressions/生气.exp3.json"
+            },
+            {
+                "Name": "哭",
+                "File": "expressions/哭.exp3.json"
+            },
+            {
+                "Name": "脸红",
+                "File": "expressions/脸红.exp3.json"
+            },
+            {
+                "Name": "星星眼",
+                "File": "expressions/星星眼.exp3.json"
+            },
+            {
+                "Name": "爱心眼",
+                "File": "expressions/爱心眼.exp3.json"
+            },
+            {
+                "Name": "墨镜",
+                "File": "expressions/墨镜.exp3.json"
+            },
+            {
+                "Name": "吐舌",
+                "File": "expressions/吐舌.exp3.json"
+            },
+            {
+                "Name": "晕晕",
+                "File": "expressions/晕晕.exp3.json"
+            },
+            {
+                "Name": "调皮",
+                "File": "expressions/调皮.exp3.json"
+            }
+        ]
+    },
+    "Groups": [
+        {
+            "Target": "Parameter",
+            "Name": "EyeBlink",
+            "Ids": [
+                "ParamEyeLOpen",
+                "ParamEyeROpen"
+            ]
+        },
+        {
+            "Target": "Parameter",
+            "Name": "LipSync",
+            "Ids": []
+        }
+    ],
+    "HitAreas": [
+        {
+            "Id": "Head",
+            "Name": "头"
+        },
+        {
+            "Id": "Body",
+            "Name": "身体"
+        }
+    ]
+}

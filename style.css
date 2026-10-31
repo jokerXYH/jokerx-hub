@@ -30,36 +30,35 @@
   color-scheme: light;
 
   /* 浅灰底 / 白色卡片 / 文字 */
-  --bg: #f5f5f7;
+  --bg: var(--ui-bg);
   --bg-glow: radial-gradient(1100px 520px at 50% -160px, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 66%);
-  --card: #ffffff;
-  --ink: #1d1d1f;
-  --ink-2: #6e6e73;
-  --ink-3: #a1a1a6;
+  --card: var(--ui-surface);
+  --ink: var(--ui-text);
+  --ink-2: var(--ui-text-secondary);
+  --ink-3: var(--ui-text-muted);
 
   /* 卡片描边与阴影 */
-  --card-border: rgba(0, 0, 0, 0.06);
-  --card-border-hover: rgba(0, 0, 0, 0.12);
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+  --card-border: var(--ui-border);
+  --card-border-hover: var(--ui-border-strong);
+  --card-shadow: var(--ui-shadow-card);
   --card-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.05), 0 16px 40px rgba(0, 0, 0, 0.10);
 
   /* 图标位底色 */
-  --icon-bg: rgba(0, 0, 0, 0.045);
+  --icon-bg: var(--ui-surface-muted);
 
   /* 发丝线（页脚等） */
-  --line: rgba(0, 0, 0, 0.08);
+  --line: var(--ui-border);
 
-  /* 唯一强调色：苹果蓝 */
-  --accent: #0071e3;
-  --focus-ring: rgba(0, 113, 227, 0.35);
+  /* 唯一强调色与主站 / 子页共用 */
+  --accent: var(--ui-accent);
+  --focus-ring: var(--ui-focus-ring);
 
   /* 黄金比例圆角 */
-  --r-1: 8px;
-  --r-2: 13px;
-  --r-3: 21px;
+  --r-1: var(--ui-radius-sm);
+  --r-2: var(--ui-radius-md);
+  --r-3: var(--ui-radius-xl);
 
-  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', 'PingFang SC',
-          'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  --font: var(--ui-font-sans);
 
   /* 艺术衬线：只用于展示性文字（字标、网址、时钟）。
      邀请码 / 学号等要照着抄的数据一律用系统字体正常显示，不用斜体。 */
@@ -70,30 +69,21 @@
 html[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #000000;
   --bg-glow: radial-gradient(1100px 520px at 50% -160px, rgba(255, 255, 255, 0.07), rgba(0, 0, 0, 0) 66%);
-  --card: #1c1c1e;
-  --ink: #f5f5f7;
-  --ink-2: #a1a1a6;
-  --ink-3: #6e6e73;
-
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-border-hover: rgba(255, 255, 255, 0.16);
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.35);
   --card-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.6), 0 16px 40px rgba(0, 0, 0, 0.55);
 
-  --icon-bg: rgba(255, 255, 255, 0.09);
-
-  --line: rgba(255, 255, 255, 0.12);
-
-  --accent: #0a84ff;
-  --focus-ring: rgba(10, 132, 255, 0.5);
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* hidden 属性必须生效：若有元素自带 display（如 .weather 的 inline-flex），
+   会覆盖浏览器对 [hidden] 的默认隐藏；这条统一兜底。 */
+[hidden] {
+  display: none !important;
 }
 
 body {
@@ -144,6 +134,7 @@ button:focus-visible {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  flex-wrap: wrap;   /* 窄屏兜底：元素过多时换行而不是溢出裁切 */
   gap: 14px;
   margin-bottom: 30px;
 }
@@ -161,10 +152,42 @@ button:focus-visible {
   color: var(--ink-3);
 }
 
-/* 主题切换：线描日/月图标，不用 emoji */
-.theme-toggle {
-  width: 34px;
-  height: 34px;
+/* 天气小组件（open-meteo）：线描图标 + 温度，可选城市名 */
+.weather {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-2);
+}
+
+.weather-icon {
+  display: inline-flex;
+  width: 15px;
+  height: 15px;
+}
+
+.weather-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.weather-temp {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.weather-city {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-left: 2px;
+}
+
+/* 主题 / 视图切换按钮：线描图标，不用 emoji */
+.theme-toggle,
+.view-toggle {
+  width: var(--ui-control);
+  height: var(--ui-control);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -174,19 +197,26 @@ button:focus-visible {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   color: var(--ink-2);
   cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  transition: color 0.2s ease, border-color 0.2s ease, transform 0.08s ease;
+}
+
+/* 点按轻反馈（与卡片一致的触屏手感） */
+.theme-toggle:active,
+.view-toggle:active {
+  transform: scale(0.94);
 }
 
 @media (hover: hover) {
-  .theme-toggle:hover {
+  .theme-toggle:hover,
+  .view-toggle:hover {
     color: var(--ink);
     border-color: var(--card-border-hover);
   }
 }
 
 .theme-icon {
-  width: 15px;
-  height: 15px;
+  width: var(--ui-icon);
+  height: var(--ui-icon);
 }
 
 .theme-icon--sun { display: block; }
@@ -194,6 +224,18 @@ button:focus-visible {
 
 html[data-theme="dark"] .theme-icon--sun { display: none; }
 html[data-theme="dark"] .theme-icon--moon { display: block; }
+
+/* 视图切换：卡片视图显示"卡片"图标，图标视图显示"宫格"图标 */
+.view-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.view-icon--cards { display: block; }
+.view-icon--grid { display: none; }
+
+html[data-view="icons"] .view-icon--cards { display: none; }
+html[data-view="icons"] .view-icon--grid { display: block; }
 
 /* ---------- 标题区（居中） ---------- */
 .hero {
@@ -279,6 +321,13 @@ html[data-theme="dark"] .theme-icon--moon { display: block; }
   font-size: 12px;
   color: var(--ink-3);
   pointer-events: none;
+}
+
+/* 触屏设备不显示键盘快捷键提示（手机上不存在的按键没有意义） */
+@media (hover: none) {
+  .search-kbd {
+    display: none;
+  }
 }
 
 /* ---------- 目录分区 ---------- */
@@ -426,6 +475,156 @@ html[data-theme="dark"] .card-icon img.mark-invert {
   letter-spacing: 0.01em;
 }
 
+/* ---------- 图标视图（Launchpad 风） ---------- */
+.icon-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 12px;
+}
+
+.icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px 10px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--r-2);
+  box-shadow: var(--card-shadow);
+  min-width: 0;
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.2, 0, 0.2, 1),
+              border-color 0.3s ease;
+}
+
+@media (hover: hover) {
+  .icon-item:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--card-shadow-hover);
+    border-color: var(--card-border-hover);
+  }
+}
+
+.icon-item:active {
+  transform: scale(0.98);
+}
+
+/* 复用卡片图标位，但放大为 56px 贴片 */
+.icon-item .card-icon {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  font-size: 22px;
+}
+
+.icon-name {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink);
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---------- 手动置顶 ---------- */
+.card-grid > li,
+.icon-grid > li {
+  position: relative;
+}
+
+.pin-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--ink-3);
+  opacity: 0;
+  transform: scale(0.9);
+  cursor: pointer;
+  transition: opacity 0.18s ease, transform 0.18s ease,
+              color 0.18s ease, border-color 0.18s ease;
+}
+
+.pin-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.card-grid > li:hover .pin-btn,
+.card-grid > li:focus-within .pin-btn,
+.icon-grid > li:hover .pin-btn,
+.icon-grid > li:focus-within .pin-btn,
+.pin-btn.is-pinned {
+  opacity: 1;
+  transform: none;
+}
+
+.pin-btn:hover {
+  color: var(--accent);
+  border-color: var(--card-border);
+}
+
+.pin-btn.is-pinned {
+  color: var(--accent);
+}
+
+/* 图标视图：图钉缩小，避免压住图标 */
+.icon-grid .pin-btn {
+  top: 5px;
+  right: 5px;
+  width: 22px;
+  height: 22px;
+}
+
+.icon-grid .pin-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* 卡片正文给右上角图钉留空间，长标题不会压到按钮 */
+.card-grid .card-body {
+  padding-right: 20px;
+}
+
+/* 触屏没有 hover：图钉常驻半透明，方便点 */
+@media (hover: none) {
+  .pin-btn {
+    opacity: 0.6;
+    transform: none;
+  }
+}
+
+/* 置顶分区标题 */
+.group--pinned .group-name {
+  color: var(--accent);
+}
+
+.group-pin {
+  width: 13px;
+  height: 13px;
+  margin-right: 5px;
+  vertical-align: -2px;
+}
+
+/* 搜索键盘导航的选中态（两种视图通用） */
+a.kbd-active {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 /* ---------- 空状态 ---------- */
 .empty {
   margin-top: 64px;
@@ -468,7 +667,7 @@ html[data-theme="dark"] .card-icon img.mark-invert {
 /* ---------- 手机端适配 ---------- */
 @media (max-width: 640px) {
   .app {
-    padding: 28px 20px 56px;
+    padding: 28px max(20px, env(safe-area-inset-right)) max(56px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
   }
 
   .topbar {
@@ -483,6 +682,11 @@ html[data-theme="dark"] .card-icon img.mark-invert {
     font-size: 16px; /* 避免 iOS 聚焦时自动放大页面 */
   }
 
+  /* 手机端优先保留任务标题与说明，隐藏来源仓库等低频元数据。 */
+  .card-host {
+    display: none;
+  }
+
   .sections {
     margin-top: 36px;
   }
@@ -492,7 +696,24 @@ html[data-theme="dark"] .card-icon img.mark-invert {
   }
 
   .card-grid {
+    grid-template-columns: 1fr;
     gap: 14px;
+  }
+
+  .icon-grid {
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 10px;
+  }
+
+  .icon-item {
+    padding: 12px 6px 9px;
+  }
+
+  .icon-item .card-icon {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+    font-size: 19px;
   }
 
   .card {

@@ -1,0 +1,261 @@
+/* ============================================================
+   Joker X · 鲸鱼娘桌宠（Live2D 版）
+   ------------------------------------------------------------
+   代码 MIT（Andersen216/dsh-whale-girl-live2d），模型 CC BY-NC-SA 4.0；
+   来源与许可见 assets/pet/NOTICE.md。
+
+   约束：
+     · 默认不加载模型（约 5 MB），点右下角「召唤鲸鱼娘」或上次召唤过才加载
+     · 只在右下角占一块，不挡页面点击；拖拽只动自己
+     · 30fps 上限 + 低分辨率上限，隐藏/切后台时停渲染
+     · prefers-reduced-motion 时不自动播随机动作
+     · 打印隐藏
+   ============================================================ */
+
+.jx-pet2 {
+  --w: 240px;
+  --h: 300px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--w);
+  height: var(--h);
+  z-index: 60;
+  transform-origin: 100% 100%;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: grab;
+  filter: drop-shadow(0 12px 18px rgba(16, 24, 40, 0.18));
+  will-change: transform;
+}
+
+.jx-pet2.is-dragging {
+  cursor: grabbing;
+}
+
+.jx-pet2 canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.jx-pet2__bubble {
+  position: absolute;
+  right: 34px;
+  bottom: calc(100% - 6px);
+  max-width: 190px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  /* 固定深色字：之前用 var(--ink)，深色主题下变成白字白底，看不清 */
+  background: #fff;
+  color: #1d1d1f;
+  font-size: 12.5px;
+  line-height: 1.45;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(15, 23, 42, 0.06);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: none;
+}
+
+.jx-pet2__bubble.is-on {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.jx-pet2__bubble::after {
+  content: '';
+  position: absolute;
+  right: 16px;
+  top: 100%;
+  border: 6px solid transparent;
+  border-top-color: #fff;
+}
+
+html[data-theme="dark"] .jx-pet2__bubble {
+  background: #26262c;
+  color: #f5f5f7;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .jx-pet2__bubble::after {
+  border-top-color: #26262c;
+}
+
+/* 召唤 / 加载 / 召回 共用的小胶囊 */
+.jx-pet2-chip {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #374151;
+  font-size: 12.5px;
+  line-height: 1.2;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.jx-pet2-chip:active {
+  transform: scale(0.97);
+}
+
+.jx-pet2-chip[disabled] {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.jx-pet2-chip::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.16);
+}
+
+@media (max-width: 600px) {
+  .jx-pet2 {
+    --w: 180px;
+    --h: 225px;
+  }
+
+  .jx-pet2__bubble {
+    max-width: 160px;
+    font-size: 12px;
+  }
+
+  .jx-pet2-chip {
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jx-pet2__bubble {
+    transition: none;
+  }
+}
+
+@media print {
+  .jx-pet2,
+  .jx-pet2-chip {
+    display: none !important;
+  }
+}
+
+/* ---------- 右键 / 长按菜单 ---------- */
+.jx-pet2-menu {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 61;
+  width: 236px;
+  max-height: 72vh;
+  overflow: auto;
+  padding: 10px 10px 8px;
+  border-radius: 16px;
+  background: #fff;
+  color: #1d1d1f;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(15, 23, 42, 0.06);
+  -webkit-overflow-scrolling: touch;
+}
+
+html[data-theme="dark"] .jx-pet2-menu {
+  background: #1f1f24;
+  color: #f5f5f7;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.jx-pet2-menu-title {
+  margin: 6px 4px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #8a8f98;
+}
+
+html[data-theme="dark"] .jx-pet2-menu-title {
+  color: #9aa0aa;
+}
+
+.jx-pet2-menu-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 2px 4px;
+}
+
+.jx-pet2-menu-chips button {
+  padding: 5px 10px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+  background: #f7f8fb;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.jx-pet2-menu-chips button:hover {
+  background: #eef2ff;
+  border-color: rgba(79, 70, 229, 0.35);
+}
+
+html[data-theme="dark"] .jx-pet2-menu-chips button {
+  background: #2a2a31;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .jx-pet2-menu-chips button:hover {
+  background: #34344a;
+  border-color: rgba(165, 180, 252, 0.4);
+}
+
+.jx-pet2-menu-actions {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="dark"] .jx-pet2-menu-actions {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.jx-pet2-menu-actions button {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.jx-pet2-menu-actions button:hover {
+  background: #f2f4f8;
+}
+
+html[data-theme="dark"] .jx-pet2-menu-actions button:hover {
+  background: #2a2a31;
+}
+
+@media print {
+  .jx-pet2-menu {
+    display: none !important;
+  }
+}

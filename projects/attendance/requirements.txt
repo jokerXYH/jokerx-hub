@@ -1,0 +1,7 @@
+# -*- coding: utf-8 -*-
+# 一键考勤 · 服务端依赖
+# 安装步骤（服务器）：
+#   pip3 install -r requirements.txt
+#   python3 -m playwright install chromium        # 下载浏览器内核
+#   python3 -m playwright install-deps chromium   # 安装系统依赖（Ubuntu 需要）
+playwright>=1.40

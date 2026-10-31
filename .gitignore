@@ -10,6 +10,7 @@ projects/*/venv/
 projects/*/node_modules/
 projects/*/__pycache__/
 projects/*/*.pyc
+projects/*/data/
 projects/*/config.json
 projects/*/local.properties
 
@@ -19,3 +20,8 @@ __pycache__/
 *.pyc
 .env
 *.log
+
+# ---- 本机部署 / 调试产物（不入库）----
+.secrets/
+.user.ini
+/*.png

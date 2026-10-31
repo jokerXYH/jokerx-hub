@@ -1,0 +1,412 @@
+/* ============================================================
+   Joker X · 动态交互背景层
+   ------------------------------------------------------------
+   设计方向（2026-10-24 重做）：
+     · 参考「技术感淡彩」：淡紫 → 冰蓝 → 薄荷的柔光渐变
+     · 细网格 + 点阵 + 极淡的等高线圆环，制造“图纸 / 水面”质感
+     · 少量漂浮气泡；首页额外有两条圆滚滚的「大肥鱼」缓慢游过
+     · 鼠标光晕 + 网格跟随（保留原有交互，不抢内容）
+
+   性能约定：
+     1. 只有一层 fixed 容器，z-index:-1，pointer-events:none，打印隐藏；
+     2. 所有漂移 / 游动只改 transform，不触发布局；
+     3. 光标跟随用单个 rAF，静止后自动停表；触屏 / 减弱动效不跑循环；
+     4. 鱼和气泡全部由 CSS 动画驱动，不增加 JS 帧循环。
+   ============================================================ */
+
+.jx-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+
+  /* 浅色：柔光淡彩底 */
+  background-color: #f4f3fb;
+  background-image:
+    radial-gradient(1200px 720px at 50% -14%, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0) 64%),
+    linear-gradient(155deg, #f3f0fb 0%, #f1f5fc 38%, #eef8f4 72%, #f6f2fb 100%);
+
+  /* 网格 / 点阵 */
+  --jx-grid: rgba(86, 74, 160, 0.075);
+  --jx-dot: rgba(86, 74, 160, 0.18);
+  --jx-grid-accent: rgba(86, 74, 160, 0.12);
+
+  /* 光标光晕 */
+  --jx-glow-core: rgba(108, 92, 231, 0.12);
+  --jx-glow-edge: rgba(74, 158, 255, 0.06);
+
+  /* 漂移色块：紫 / 蓝 / 薄荷 */
+  --jx-blob-violet: rgba(124, 108, 246, 0.30);
+  --jx-blob-sky: rgba(74, 158, 255, 0.24);
+  --jx-blob-mint: rgba(0, 194, 168, 0.20);
+
+  /* 圆环 / 气泡 / 鱼 */
+  --jx-ring: rgba(108, 92, 231, 0.10);
+  --jx-bubble-border: rgba(255, 255, 255, 0.75);
+  --jx-bubble-tint: rgba(167, 139, 250, 0.10);
+  --jx-fish-opacity: 0.12;
+
+  --jx-grain-opacity: 0.05;
+  --jx-veil: rgba(255, 255, 255, 0.20);
+}
+
+html[data-theme="dark"] .jx-ambient {
+  background-color: #080c16;
+  background-image:
+    radial-gradient(1100px 650px at 50% -12%, rgba(99, 102, 241, 0.16), rgba(0, 0, 0, 0) 64%),
+    linear-gradient(155deg, #080c16 0%, #0a1020 40%, #081614 74%, #0b0a16 100%);
+
+  --jx-grid: rgba(255, 255, 255, 0.045);
+  --jx-dot: rgba(255, 255, 255, 0.12);
+  --jx-grid-accent: rgba(255, 255, 255, 0.06);
+
+  --jx-glow-core: rgba(99, 102, 241, 0.24);
+  --jx-glow-edge: rgba(56, 189, 248, 0.09);
+
+  --jx-blob-violet: rgba(99, 102, 241, 0.34);
+  --jx-blob-sky: rgba(14, 165, 233, 0.24);
+  --jx-blob-mint: rgba(20, 184, 166, 0.20);
+
+  --jx-ring: rgba(165, 180, 252, 0.12);
+  --jx-bubble-border: rgba(255, 255, 255, 0.16);
+  --jx-bubble-tint: rgba(125, 211, 252, 0.06);
+  --jx-fish-opacity: 0.22;
+
+  --jx-grain-opacity: 0.075;
+  --jx-veil: rgba(255, 255, 255, 0.04);
+}
+
+/* ---------- 漂移色块层（视差容器） ---------- */
+.jx-ambient__field {
+  position: absolute;
+  inset: -12%;
+  will-change: transform;
+}
+
+.jx-ambient__blob {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+  animation: jx-ambient-drift-a 46s ease-in-out infinite;
+}
+
+.jx-ambient__blob--violet {
+  left: -12%;
+  top: -24%;
+  width: 64vw;
+  height: 64vw;
+  background: radial-gradient(circle, var(--jx-blob-violet) 0%, transparent 68%);
+  animation-duration: 56s;
+}
+
+.jx-ambient__blob--sky {
+  right: -14%;
+  top: 2%;
+  width: 58vw;
+  height: 58vw;
+  background: radial-gradient(circle, var(--jx-blob-sky) 0%, transparent 70%);
+  animation-name: jx-ambient-drift-b;
+  animation-duration: 68s;
+  animation-delay: -12s;
+}
+
+.jx-ambient__blob--mint {
+  left: 24%;
+  bottom: -30%;
+  width: 62vw;
+  height: 62vw;
+  background: radial-gradient(circle, var(--jx-blob-mint) 0%, transparent 72%);
+  animation-name: jx-ambient-drift-c;
+  animation-duration: 78s;
+  animation-delay: -27s;
+}
+
+@keyframes jx-ambient-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33%      { transform: translate3d(4vw, 3vh, 0) scale(1.06); }
+  66%      { transform: translate3d(-3vw, 6vh, 0) scale(0.96); }
+}
+
+@keyframes jx-ambient-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  40%      { transform: translate3d(-5vw, 4vh, 0) scale(1.05); }
+  72%      { transform: translate3d(-1vw, -3vh, 0) scale(0.95); }
+}
+
+@keyframes jx-ambient-drift-c {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.98); }
+  36%      { transform: translate3d(4vw, -4vh, 0) scale(1.07); }
+  70%      { transform: translate3d(-4vw, -1vh, 0) scale(1); }
+}
+
+/* ---------- 细网格 + 点阵 ---------- */
+.jx-ambient__grid {
+  position: absolute;
+  inset: -12%;
+  background-image:
+    linear-gradient(to right, var(--jx-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--jx-grid) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(120% 88% at 50% 0%, #000 42%, transparent 92%);
+  mask-image: radial-gradient(120% 88% at 50% 0%, #000 42%, transparent 92%);
+  opacity: 0.9;
+}
+
+.jx-ambient__dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--jx-dot) 1.1px, transparent 1.5px);
+  background-size: 32px 32px;
+  -webkit-mask-image: radial-gradient(100% 78% at 50% 8%, #000 18%, transparent 76%);
+  mask-image: radial-gradient(100% 78% at 50% 8%, #000 18%, transparent 76%);
+  opacity: 0.55;
+}
+
+/* ---------- 细尘粒子 + 星座连线（canvas） ---------- */
+.jx-ambient__particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+/* ---------- 等高线圆环 ---------- */
+.jx-ambient__ring {
+  position: absolute;
+  width: 74vw;
+  height: 74vw;
+  right: -24vw;
+  top: 8vh;
+  border: 1px solid var(--jx-ring);
+  border-radius: 50%;
+  animation: jx-ambient-ring 90s linear infinite;
+}
+
+.jx-ambient__ring--small {
+  width: 44vw;
+  height: 44vw;
+  left: -16vw;
+  top: 52vh;
+  right: auto;
+  animation-duration: 120s;
+  animation-direction: reverse;
+}
+
+@keyframes jx-ambient-ring {
+  from { transform: rotate(0deg) translate3d(0, 0, 0); }
+  to   { transform: rotate(360deg) translate3d(0, 0, 0); }
+}
+
+/* ---------- 漂浮气泡 ---------- */
+.jx-ambient__bubbles {
+  position: absolute;
+  inset: 0;
+}
+
+.jx-ambient__bubble {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--jx-bubble-border);
+  background: radial-gradient(circle at 30% 26%,
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.18) 44%,
+    var(--jx-bubble-tint) 68%,
+    transparent 72%);
+  box-shadow:
+    inset -4px -6px 10px rgba(108, 92, 231, 0.10),
+    0 4px 14px rgba(108, 92, 231, 0.06);
+  opacity: 0.55;
+  animation: jx-ambient-bubble var(--dur, 18s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform;
+}
+
+html[data-theme="dark"] .jx-ambient__bubble {
+  background: radial-gradient(circle at 30% 26%,
+    rgba(255, 255, 255, 0.55),
+    rgba(255, 255, 255, 0.06) 46%,
+    var(--jx-bubble-tint) 70%,
+    transparent 72%);
+  box-shadow: inset -4px -6px 10px rgba(125, 211, 252, 0.08);
+  opacity: 0.35;
+}
+
+@keyframes jx-ambient-bubble {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(4px, -18px, 0) scale(1.05); }
+}
+
+/* ---------- 大肥鱼：只在首页出现，像水印一样游过 ---------- */
+.jx-ambient__fish {
+  position: absolute;
+  left: 0;
+  width: var(--w, 300px);
+  opacity: var(--jx-fish-opacity);
+  animation: jx-ambient-swim var(--dur, 82s) linear infinite;
+  animation-delay: var(--delay, -30s);
+  will-change: transform;
+}
+
+.jx-ambient__fish--a {
+  --w: 300px;
+  --dur: 82s;
+  --delay: -20s;
+  --bob: 7s;
+  --bob-delay: -2s;
+  top: 4%;
+}
+
+.jx-ambient__fish--b {
+  --w: 180px;
+  --dur: 104s;
+  --delay: -64s;
+  --bob: 9s;
+  --bob-delay: -5s;
+  top: 62%;
+  opacity: calc(var(--jx-fish-opacity) * 0.8);
+  animation-name: jx-ambient-swim-rev;
+}
+
+.jx-ambient__fish-bob {
+  animation: jx-ambient-bob var(--bob, 7s) ease-in-out infinite;
+  animation-delay: var(--bob-delay, -2s);
+}
+
+.jx-ambient__fish svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 8px 24px rgba(108, 92, 231, 0.10));
+}
+
+html[data-theme="dark"] .jx-ambient__fish svg {
+  filter: drop-shadow(0 8px 26px rgba(125, 211, 252, 0.10));
+}
+
+body:not(.hub) .jx-ambient__fish {
+  display: none;
+}
+
+@keyframes jx-ambient-swim {
+  from { transform: translate3d(-34vw, 0, 0) rotate(-1.5deg); }
+  to   { transform: translate3d(136vw, -5vh, 0) rotate(1.5deg); }
+}
+
+@keyframes jx-ambient-swim-rev {
+  from { transform: translate3d(136vw, 0, 0) scaleX(-1) rotate(1.5deg); }
+  to   { transform: translate3d(-34vw, -4vh, 0) scaleX(-1) rotate(-1.5deg); }
+}
+
+@keyframes jx-ambient-bob {
+  0%, 100% { transform: translateY(-6px); }
+  50%      { transform: translateY(8px); }
+}
+
+/* ---------- 光标网格（慢）：mask 收边的一小块网格局 ---------- */
+.jx-ambient__spot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1000px;
+  height: 1000px;
+  background-image:
+    linear-gradient(to right, var(--jx-grid-accent) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--jx-grid-accent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: 0 0;
+  opacity: 0.85;
+  will-change: transform;
+  -webkit-mask-image: radial-gradient(closest-side circle, #000 0%, rgba(0, 0, 0, 0.5) 42%, transparent 76%);
+  mask-image: radial-gradient(closest-side circle, #000 0%, rgba(0, 0, 0, 0.5) 42%, transparent 76%);
+}
+
+/* ---------- 光标光晕（快）：柔和的 accent 光斑 ---------- */
+.jx-ambient__glow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 760px;
+  height: 760px;
+  background: radial-gradient(closest-side circle, var(--jx-glow-core), var(--jx-glow-edge) 46%, transparent 74%);
+  will-change: transform;
+}
+
+/* ---------- 顶部天光：把页面顶部压亮一点 ---------- */
+.jx-ambient__veil {
+  position: absolute;
+  inset: -1px;
+  background: radial-gradient(1200px 520px at 50% -12%, var(--jx-veil), transparent 72%);
+}
+
+/* ---------- 噪点：抹掉渐变的塑料感 ---------- */
+.jx-ambient__grain {
+  position: absolute;
+  inset: 0;
+  opacity: var(--jx-grain-opacity);
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/* ---------- 触屏设备：不追光标，只保留缓慢漂移 ---------- */
+@media (hover: none), (pointer: coarse) {
+  .jx-ambient__glow,
+  .jx-ambient__spot {
+    display: none;
+  }
+}
+
+/* ---------- 平板：鱼缩小，避免和居中的标题叠在一起 ---------- */
+@media (min-width: 721px) and (max-width: 900px) {
+  .jx-ambient__fish--a {
+    --w: 200px;
+    --delay: -18s;
+  }
+
+  .jx-ambient__fish--b {
+    display: none;
+  }
+}
+
+/* ---------- 手机：鱼和标题容易叠在一起，只留气泡和网格 ---------- */
+@media (max-width: 720px) {
+  /* 手机上标题占满宽度，鱼容易和标题叠在一起：干脆只留气泡和网格 */
+  .jx-ambient__fish,
+  .jx-ambient__ring--small {
+    display: none;
+  }
+
+  .jx-ambient__grid {
+    background-size: 48px 48px;
+  }
+}
+
+/* ---------- 打印：背景层不参与输出 ---------- */
+@media print {
+  .jx-ambient {
+    display: none !important;
+  }
+}
+
+/* ---------- 减弱动效：保留静态构图，停掉漂移 / 游动 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .jx-ambient__blob,
+  .jx-ambient__bubble,
+  .jx-ambient__fish,
+  .jx-ambient__fish-bob,
+  .jx-ambient__ring {
+    animation: none !important;
+  }
+
+  .jx-ambient__fish--a {
+    transform: translate3d(12vw, 0, 0);
+  }
+
+  .jx-ambient__fish--b {
+    display: none;
+  }
+}

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>考勤 · 校管家</title>
+  <meta name="description" content="展开课程名单，批量完成校管家考勤">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="referrer" content="no-referrer">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='15' fill='%230071e3'/><path d='M18 21h28v27H18z' fill='none' stroke='white' stroke-width='3'/><path d='M25 16v9M39 16v9M24 34l5 5 11-11' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+  <div id="serverBanner" class="banner" role="alert" hidden>
+    <strong>考勤服务暂时不可用</strong>
+    <span>请确认服务已启动，然后刷新页面。</span>
+    <button id="serverRetryBtn" class="text-button" type="button">重试</button>
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="back-link" href="../../index.html" aria-label="返回中转站">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>
+        <span>中转站</span>
+      </a>
+      <a class="brand" href="./" aria-label="考勤首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M8 14l2.4 2.4L16 11"/></svg>
+        </span>
+        <span class="brand-copy">
+          <strong>考勤</strong>
+          <span>校管家</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <button class="text-button header-help" id="helpBtn" type="button">使用说明</button>
+        <div class="user-area" id="userArea" hidden>
+          <span class="user-avatar" id="userAvatar" aria-hidden="true">考</span>
+          <span class="user-name" id="userBadge"></span>
+          <button class="text-button" id="logoutBtn" type="button">退出</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section id="loginCard" class="auth-view" hidden>
+      <div class="auth-promise">
+        <p class="eyebrow">今日考勤</p>
+        <h1>少点几次，<br>多点确认。</h1>
+        <p>展开课程名单，批量调整出勤状态，提交前再核对一次。</p>
+        <div class="auth-steps" aria-label="工作流程">
+          <span><b>1</b> 选择课程</span>
+          <span><b>2</b> 核对名单</span>
+          <span><b>3</b> 确认提交</span>
+        </div>
+      </div>
+      <form class="auth-card" id="loginForm" novalidate>
+        <div class="auth-card-head">
+          <span class="auth-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.4c0 4.8 3.2 8.1 7.5 9.6 4.3-1.5 7.5-4.8 7.5-9.6V6L12 3Z"/><path d="M9 12.2 11 14l4-4"/></svg>
+          </span>
+          <div>
+            <h2>登录校管家</h2>
+            <p>密码只用于本次服务端登录，不会保存在浏览器中。</p>
+          </div>
+        </div>
+        <button class="button button--primary button--wide quick-login" id="quickLoginBtn" type="button" hidden>
+          一键登录 <span id="quickLoginUser"></span>
+        </button>
+        <p class="quick-login-hint" id="quickLoginHint" hidden>或使用账号密码登录</p>
+        <label class="field">
+          <span class="field-label">用户名</span>
+          <input class="field-input" id="usernameInput" name="attendance_username" type="text" autocomplete="username" placeholder="例如：张三@xiaogj">
+        </label>
+        <label class="field">
+          <span class="field-label">密码</span>
+          <input class="field-input" id="passwordInput" name="attendance_password" type="password" autocomplete="current-password" placeholder="输入校管家密码">
+        </label>
+        <p class="inline-error" id="loginError" role="alert" hidden></p>
+        <button class="button button--primary button--wide" id="loginBtn" type="submit">登录并读取课程</button>
+        <p class="privacy-note">登录状态由服务端单独隔离，不与其他浏览器共享。</p>
+      </form>
+    </section>
+
+    <section id="workArea" hidden>
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow" id="todayLabel">今日</p>
+          <h1>今日课程</h1>
+          <p class="page-meta" id="courseInfo" aria-live="polite">正在读取今日课程…</p>
+        </div>
+        <div class="page-actions">
+          <button class="button button--quiet" id="refreshBtn" type="button">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg>
+            <span>刷新</span>
+          </button>
+          <button class="button button--primary" id="batchPresentBtn" type="button" disabled>
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 11a3.2 3.2 0 1 0 0-6.4A3.2 3.2 0 0 0 8 11Z"/><path d="M2.8 19.2c.3-3.2 2.4-5.2 5.2-5.2s4.9 2 5.2 5.2"/><path d="m15.5 8 1.6 1.6 3.1-3.1"/></svg>
+            <span>待点名全勤</span>
+          </button>
+        </div>
+      </div>
+
+      <section class="course-workspace" aria-labelledby="courseWorkspaceTitle">
+        <h2 class="visually-hidden" id="courseWorkspaceTitle">考勤课程列表</h2>
+        <div class="course-toolbar">
+          <label class="search-control" for="courseSearch">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+            <input id="courseSearch" type="search" autocomplete="off" placeholder="搜索班级、教室或老师">
+            <span class="visually-hidden">搜索课程</span>
+          </label>
+          <div class="segmented" id="statusFilter" role="group" aria-label="按点名状态筛选">
+            <button type="button" data-filter="all" aria-pressed="true">全部 <span data-count="all">0</span></button>
+            <button type="button" data-filter="pending" aria-pressed="false">待点名 <span data-count="pending">0</span></button>
+            <button type="button" data-filter="done" aria-pressed="false">已点名 <span data-count="done">0</span></button>
+          </div>
+        </div>
+
+        <div class="course-list" id="courseList">
+          <div class="skeleton-list" aria-label="正在加载课程">
+            <div class="skeleton skeleton--row"></div>
+            <div class="skeleton skeleton--row"></div>
+            <div class="skeleton skeleton--row"></div>
+          </div>
+        </div>
+        <div class="batch-failures" id="batchFailures" hidden>
+          <div>
+            <strong>部分课程未完成</strong>
+            <ul id="batchFailureList"></ul>
+          </div>
+          <button class="button button--quiet" id="batchRetryBtn" type="button">重试失败项</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="dialog-layer" id="confirmDialog" hidden>
+    <div class="dialog-backdrop" data-action="close-confirm"></div>
+    <section class="confirm-sheet" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <header class="confirm-head">
+        <div>
+          <p class="eyebrow">提交前核对</p>
+          <h2 id="confirmTitle">确认提交考勤</h2>
+        </div>
+        <button class="icon-button" type="button" data-action="close-confirm" aria-label="关闭确认窗口">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+      <div class="confirm-body" id="confirmBody"></div>
+      <p class="inline-error" id="confirmError" role="alert" hidden></p>
+      <footer class="confirm-actions">
+        <button class="button button--quiet" type="button" data-action="close-confirm">返回检查</button>
+        <button class="button button--primary" id="confirmSubmitBtn" type="button">确认提交</button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="dialog-layer" id="helpDialog" hidden>
+    <div class="dialog-backdrop" data-action="close-help"></div>
+    <section class="confirm-sheet help-sheet" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <header class="confirm-head">
+        <div>
+          <p class="eyebrow">使用说明</p>
+          <h2 id="helpTitle">怎样完成一次考勤</h2>
+        </div>
+        <button class="icon-button" type="button" data-action="close-help" aria-label="关闭使用说明">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+      <ol class="help-list">
+        <li><b>登录</b><span>使用校管家账号。密码不保存；本人设备下次打开可免密恢复。</span></li>
+        <li><b>展开课程</b><span>按教室查看今日课程，点课程行展开名单。</span></li>
+        <li><b>勾选考勤</b><span>默认沿用实际出勤状态；可搜索、批量调整，并为缺勤学员选择原因。</span></li>
+        <li><b>核对提交</b><span>确认出勤与缺勤人数后再提交。已点名课程默认只读。</span></li>
+      </ol>
+      <footer class="confirm-actions">
+        <button class="button button--primary" type="button" data-action="close-help">知道了</button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script src="app.js?v=4"></script>
+  <script src="../jx-back-guard.js"></script>
+</body>
+</html>

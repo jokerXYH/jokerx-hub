@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="随机点名">
+  <!-- App 贴片底：紫罗兰渐变（与点名系统的橙色区分），圆角由页面 CSS 裁切 -->
+  <defs>
+    <linearGradient id="gRandomRoll" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8b7cf6"/>
+      <stop offset="1" stop-color="#6d28d9"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" fill="url(#gRandomRoll)"/>
+  <!-- 白色骰子（24 线稿风格，五点，居中放大） -->
+  <g transform="translate(24 24) scale(1.02) translate(-12 -12)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="4" width="16" height="16" rx="4.2"/>
+    <circle cx="8.7" cy="8.7" r="1.3" fill="#ffffff" stroke="none"/>
+    <circle cx="15.3" cy="8.7" r="1.3" fill="#ffffff" stroke="none"/>
+    <circle cx="12" cy="12" r="1.3" fill="#ffffff" stroke="none"/>
+    <circle cx="8.7" cy="15.3" r="1.3" fill="#ffffff" stroke="none"/>
+    <circle cx="15.3" cy="15.3" r="1.3" fill="#ffffff" stroke="none"/>
+  </g>
+</svg>

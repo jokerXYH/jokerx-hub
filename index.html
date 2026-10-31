@@ -2,24 +2,47 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#f5f5f7">
   <title>Joker X · 中转站</title>
   <meta name="description" content="Joker X 的个人导航中转站">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='15' fill='%230071e3'/><text x='27' y='45' font-family='Helvetica' font-size='32' font-weight='700' fill='%23ffffff' text-anchor='middle'>J</text><circle cx='47' cy='41' r='4' fill='%23ffffff' opacity='0.9'/></svg>">
+  <link rel="icon" type="image/png" href="assets/icons/avatar-64.png">
+  <!-- 站点头像由 tools/set_site_avatar.py 从照片生成（64/180/192/512/maskable） -->
+  <!-- PWA：安装到主屏幕（图标由 tools/make_pwa_icons.py 从安卓启动器资产生成） -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/avatar-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="中转站">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
   <!-- 首屏主题：必须在样式表之前确定 data-theme，避免刷新时闪一下错误的颜色。
        独立成 theme.js 是为了兼容站点 CSP（script-src 'self' 会拦截内联脚本）。 -->
   <script src="theme.js"></script>
   <link rel="preload" href="assets/fonts/playfair-display-italic.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/playfair-display.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="projects/sign-in-generator/ui-tokens.css">
+  <link rel="stylesheet" href="style.css?v=4">
+  <!-- 动态背景层：光标光晕 + 微光网格 + 缓慢漂移色块（assets/ambient/） -->
+  <link rel="stylesheet" href="assets/ambient/ambient.css?v=4">
+  <script src="assets/ambient/ambient.js?v=4" defer></script>
+  <!-- 鲸鱼娘桌宠（Live2D，素材 CC BY-NC-SA，见 assets/pet/NOTICE.md） -->
+  <link rel="stylesheet" href="assets/pet/live2d-pet.css?v=3">
+  <script src="assets/pet/live2d-pet.js?v=9" defer></script>
 </head>
-<body>
+<body class="hub">
   <div class="app">
-    <!-- 顶栏：右侧时钟 / 问候 / 主题切换 -->
+    <!-- 顶栏：右侧天气 / 时钟 / 问候 / 视图与主题切换 -->
     <div class="topbar">
+      <span class="weather" id="weather" hidden>
+        <span class="weather-icon" id="weatherIcon" aria-hidden="true"></span>
+        <span class="weather-temp" id="weatherTemp"></span>
+      </span>
       <span class="clock" id="clock">--:--</span>
       <span class="greeting" id="greeting">你好</span>
+      <button class="view-toggle" id="viewToggle" type="button" title="切换卡片 / 图标视图" aria-label="切换卡片 / 图标视图">
+        <svg class="view-icon view-icon--cards" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M7.5 10h9M7.5 14h6"/></svg>
+        <svg class="view-icon view-icon--grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7.4" height="7.4" rx="2"/><rect x="13.1" y="3.5" width="7.4" height="7.4" rx="2"/><rect x="3.5" y="13.1" width="7.4" height="7.4" rx="2"/><rect x="13.1" y="13.1" width="7.4" height="7.4" rx="2"/></svg>
+      </button>
       <button class="theme-toggle" id="themeToggle" type="button" title="切换深色 / 浅色" aria-label="切换深色 / 浅色">
         <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M5.2 18.8l1.6-1.6M17.2 6.8l1.6-1.6"/></svg>
         <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z"/></svg>
@@ -50,11 +73,11 @@
     <footer class="footer">
       <span>Joker X · 中转站 © <span id="year"></span></span>
       <span class="footer-sep" aria-hidden="true">·</span>
-      <span>编辑 <code>config.js</code> 增删条目</span>
+      <span>点卡片右上角图钉可置顶 · 编辑 <code>config.js</code> 增删条目</span>
     </footer>
   </div>
 
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="config.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
