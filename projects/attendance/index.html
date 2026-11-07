@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#f5f5f7">
   <meta name="referrer" content="no-referrer">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='15' fill='%230071e3'/><path d='M18 21h28v27H18z' fill='none' stroke='white' stroke-width='3'/><path d='M25 16v9M39 16v9M24 34l5 5 11-11' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <div id="serverBanner" class="banner" role="alert" hidden>
@@ -47,13 +47,8 @@
     <section id="loginCard" class="auth-view" hidden>
       <div class="auth-promise">
         <p class="eyebrow">今日考勤</p>
-        <h1>少点几次，<br>多点确认。</h1>
-        <p>展开课程名单，批量调整出勤状态，提交前再核对一次。</p>
-        <div class="auth-steps" aria-label="工作流程">
-          <span><b>1</b> 选择课程</span>
-          <span><b>2</b> 核对名单</span>
-          <span><b>3</b> 确认提交</span>
-        </div>
+        <h1>今日课程考勤</h1>
+        <p>登录后读取今天的课程与学员名单，核对出勤情况再提交。</p>
       </div>
       <form class="auth-card" id="loginForm" novalidate>
         <div class="auth-card-head">
@@ -79,7 +74,6 @@
         </label>
         <p class="inline-error" id="loginError" role="alert" hidden></p>
         <button class="button button--primary button--wide" id="loginBtn" type="submit">登录并读取课程</button>
-        <p class="privacy-note">登录状态由服务端单独隔离，不与其他浏览器共享。</p>
       </form>
     </section>
 
@@ -117,6 +111,11 @@
           </div>
         </div>
 
+        <div class="schedule-head" aria-hidden="true">
+          <span>时间</span>
+          <span>课程 / 班级</span>
+          <span>名单</span>
+        </div>
         <div class="course-list" id="courseList">
           <div class="skeleton-list" aria-label="正在加载课程">
             <div class="skeleton skeleton--row"></div>
